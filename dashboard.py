@@ -170,7 +170,7 @@ with tab2:
     with col2: 
         modelgb_dir = './model'
         modelgb_url = 'https://drive.google.com/drive/folders/175Skml7CqvbfgS14oOctFzx-7go72jak?usp=drive_link'
-        st.write('reached here')
+        
         if not os.path.exists(modelgb_dir):
             gdown.download_folder(modelgb_url, output=modelgb_dir)
 
