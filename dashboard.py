@@ -5,6 +5,7 @@ import json
 import joblib
 import os
 import gdown
+import pickle
 
 st.set_page_config(
     page_title="DataPay",
@@ -158,9 +159,13 @@ with tab2:
         }
         jobtitle_selection = st.selectbox('Job Title', options=list(jobtitle.keys()), index=0)
 
-        sf_col1, sl_col2, sl_col3 = st.columns(3)
-        with sl_col2:
-            predict_button = st.button('Predict')
+        salcur = {
+            'USD': 19, 'INR':12, 'CAD':2, 'EUR':7, 'CHF':3, 'PLN':15, 'BRL':1, 'GBP':8, 'HKD':9,
+            'SGD':16, 'THB':17, 'AUD':0, 'ILS':11, 'HUF':10, 'CZK':5, 'DKK':6, 'JPY':13, 'TRY':18,
+            'CLP':4, 'MXN':14
+        }
+        salcur_selection = st.selectbox('Salary Currency', options=list(salcur.keys()), index=0)
+        predict_button = st.button('Predict')
 
     with col2: 
         modelgb_dir = './model'
@@ -171,24 +176,34 @@ with tab2:
 
         @st.cache_resource
         def load_model():
-            model = joblib.load(modelgb_dir) 
+            dir = modelgb_dir + '/model_gb.pkl'
+            # with open(dir, 'rb') as file:
+                # data = pickle.load(file)
+            # return data["model"]
+            
+            model = joblib.load(dir) 
             return model
         
         user_input = {
-            'company_location': comploc[comploc_selection],
-            'company_size': compsize[compsize_selection],
-            'work_year': year_selection,
-            'experience_level': explvl[explvl_selection],
-            'employment_type': emptype[emptype_selection],
-            'adjusted_job_title': jobtitle[jobtitle_selection]
+            'company_location': int(comploc[comploc_selection]),
+            'company_size': int(compsize[compsize_selection]),
+            'work_year': int(year_selection),
+            'experience_level': int(explvl[explvl_selection]),
+            'employment_type': int(emptype[emptype_selection]),
+            'adjusted_job_title': int(jobtitle[jobtitle_selection]),
+            'salary_currency': int(salcur[salcur_selection]),
+            'job_title': 0,
+            'cluster': 0,
         }
+
+        user_input_df = pd.DataFrame([user_input])
 
         st.subheader('Prediction', divider=True)
 
         if predict_button:
             with st.container(border=True):
                 model_gb = load_model()
-                predicted_salary = model_gb.predict(user_input)
+                predicted_salary = model_gb.predict(user_input_df)
                 st.write(f'The predicted salary for {jobtitle_selection} with {explvl_selection} is')
                 st.write(f'USD ${predicted_salary[0]:,.2f}')
         else:
